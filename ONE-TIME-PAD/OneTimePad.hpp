@@ -3,9 +3,12 @@
 #include <iostream>
 #include <string>
 #include <bitset>
+//#include <unordered_map>
+#include <map>
 
-const std::string e(const std::string m, const std::string k);
-const std::string d(const std::string c, const std::string k);
-const std::string xorCipherText(const std::string c1, const std::string c2);
-const std::string xorCipherText(const std::string cXORedTogether);
-const std::string expand(const std::string str);
+typedef std::pair<char, char> charPair;
+typedef std::map<char, charPair> myMap;
+
+const std::string encrypt(const std::string m, const std::string k);
+const std::string decrypt(const std::string c, const std::string k);
+myMap makeASCIIMap();

@@ -11,103 +11,69 @@ using namespace std;
 int main(void)
 {
 	srand(time(0));
-	const string message = " the is the message";	
-	const string message2 = "my password is password";
-	string key(max(message.length(), message2.length()) * 8, 'x');
+	const string message  = "The is the message";	
+	const string message2 = "My password is BigCheese2003";
+	string key(max(message.length(), message2.length()), 'x');
 
 	int i = 0;
 	while (i < key.length()) 
-	{
-		int randNum = rand() % 2;
-		if (randNum == 1)  
-			key[i] = '1';
-		else 
-			key[i] = '0';	
-		i++;
-	}
+		key[i++] = rand();
 
 	const string finalKey = key;
-
-	string transformKey;
-	for (int i = 0; i < key.length() / 8; i++) 
-	{
-		bitset<8> kBits(key.substr(i*8, i*8+8));
-		char ch = static_cast<char>(kBits.to_ulong());
-		transformKey += ch;
-	} 
 	
 	//cout << "M = " << message << " K = " << transformKey << endl;
 
-	const string cipherText = e(message, finalKey);
+	const string cipherText = encrypt(message, finalKey);
 
 	//cout << "cipherText = " << cipherText << endl;
 
-	const string originalMessage = d(cipherText, finalKey);
+	const string originalMessage = decrypt(cipherText, finalKey);
 
 	cout << "originalMessage = " << originalMessage << endl;
 	
 	//TWO-TIME-PAD-ATTACK
-	const string cipherText2 = e(message2, finalKey);
+	const string cipherText2 = encrypt(message2, finalKey);
 
-	const string ciphersXORedTogether = xorCipherText(cipherText, cipherText2);
+	const string ciphersXORedTogether = encrypt(cipherText, cipherText2);
 
-	const string test = d(ciphersXORedTogether, expand(message));
+	const string test = decrypt(ciphersXORedTogether, message);
 	cout << "TEST  = " << test << endl;
 
 	//const string guess = cribDrag(ciphersXORedTogether, " the ");
-	const string guess = d(ciphersXORedTogether, expand(" the "));
+	const string guess = decrypt(ciphersXORedTogether, "The ");
 	cout << "GUESS = " << guess << endl;
+	
+	myMap xors = makeASCIIMap();
 }
 
-const string expand(const string str)
-{	
-	string messageExpand;
-	for (int i = 0; i < str.length(); i++)
-	{
-		bitset<8> add(str[i]);
-		messageExpand += add.to_string();
+myMap makeASCIIMap()
+{
+	myMap m;
+	for (char c = ' '; c <= '~'; c++)
+	{		
+		for (char i = c + 1; i <= '~'; i++)
+		{	
+			const charPair cp (c, i);
+			m[c ^ i] = cp;
+			//cout << "char c = " << c << " XORed with char " << i << " = " << (c ^ i) << endl;   
+		}
 	}
-	return messageExpand;
+	return m;
 }
 
-const string xorCipherText(const string c1, const string c2)
-{	
-	string messageXOR;
-        for (int i = 0; i < c1.length(); i += 8)
-        {
-		bitset<8> c1Bits(c1.substr(i, i+8));      
-		bitset<8> c2Bits(c2.substr(i, i+8));
-		messageXOR += (c1Bits ^ c2Bits).to_string();
-	}
-	return messageXOR;
-}
-
-const string e(const string m, const string k)
+const string encrypt(const string m, const string k)
 {
 	string stringBinary;
 	for (int i = 0; i < m.length(); i++)
-	{
-	        bitset<8> mBits(m[i]);
-		bitset<8> kBits(k.substr(i*8, i*8+8));       
-		//cout << "mBits = " << mBits.to_ulong() << " for char " << m[i] << endl;
-		//cout << "kBits = " << kBits << endl;
-		stringBinary += (mBits ^ kBits).to_string();
-	}
-	return stringBinary;	
+		stringBinary += m[i] ^ k[i];
+	return stringBinary;
 }
 
-const string d(const string c, const string k)
+const string decrypt(const string c, const string k)
 {
 	string stringText;
-        for (int i = 0; i < min(c.length(), k.length()); i += 8)
-        {
-		bitset<8> cBits(c.substr(i, i+8));      
-		bitset<8> kBits(k.substr(i, i+8));
-		//cout << "cBits = " << cBits << " kBits = " << kBits << " XOR = " << (cBits ^ kBits).to_ulong() << endl;
-
-		char ch = static_cast<char>((cBits ^ kBits).to_ulong());
-                stringText += ch;
-        }
+        for (int i = 0; i < c.length(); i++)
+                stringText += c[i] ^ k[i];
         return stringText;
 }
 
