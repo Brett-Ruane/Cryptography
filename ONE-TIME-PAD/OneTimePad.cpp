@@ -3,15 +3,17 @@
 #include <bitset>
 #include <cstdlib>
 #include <ctime>
+#include <cctype>
 #include "OneTimePad.hpp"
 
 using namespace std;
 
-int main()
+int main(void)
 {
 	srand(time(0));
-	const string message = "this is the message";
-	string key(message.length() * 8, 'x');
+	const string message = " the is the message";	
+	const string message2 = "my password is password";
+	string key(max(message.length(), message2.length()) * 8, 'x');
 
 	int i = 0;
 	while (i < key.length()) 
@@ -25,8 +27,6 @@ int main()
 	}
 
 	const string finalKey = key;
-	const string* m = &message;
-	const string* k = &finalKey;
 
 	string transformKey;
 	for (int i = 0; i < key.length() / 8; i++) 
@@ -36,32 +36,41 @@ int main()
 		transformKey += ch;
 	} 
 	
-	cout << "M = " << message << " K = " << transformKey << endl;
+	//cout << "M = " << message << " K = " << transformKey << endl;
 
-	const string cipherText = e(*m, *k);
+	const string cipherText = e(message, finalKey);
 
-	cout << "cipherText = " << cipherText << endl;
+	//cout << "cipherText = " << cipherText << endl;
 
-	const string* c1 = &cipherText; 
-
-	const string originalMessage = d(*c1, *k);
+	const string originalMessage = d(cipherText, finalKey);
 
 	cout << "originalMessage = " << originalMessage << endl;
 	
 	//TWO-TIME-PAD-ATTACK
-	const string message2 = "gate an ape birchT";
-	const string* m2 = &message2;
-	
-	const string cipherText2 = e(*m2, *k);
-	
-	const string* c2 = &cipherText2;
+	const string cipherText2 = e(message2, finalKey);
 
-	const string ciphersXORedTogether = xorCipherText(*c1, *c2);
+	const string ciphersXORedTogether = xorCipherText(cipherText, cipherText2);
+
+	const string test = d(ciphersXORedTogether, expand(message));
+	cout << "TEST  = " << test << endl;
+
+	//const string guess = cribDrag(ciphersXORedTogether, " the ");
+	const string guess = d(ciphersXORedTogether, expand(" the "));
+	cout << "GUESS = " << guess << endl;
 }
 
-//string cribDrag
+const string expand(const string str)
+{	
+	string messageExpand;
+	for (int i = 0; i < str.length(); i++)
+	{
+		bitset<8> add(str[i]);
+		messageExpand += add.to_string();
+	}
+	return messageExpand;
+}
 
-string xorCipherText(const string c1, const string c2)
+const string xorCipherText(const string c1, const string c2)
 {	
 	string messageXOR;
         for (int i = 0; i < c1.length(); i += 8)
@@ -73,28 +82,28 @@ string xorCipherText(const string c1, const string c2)
 	return messageXOR;
 }
 
-string e(const string m, const string k)
+const string e(const string m, const string k)
 {
 	string stringBinary;
 	for (int i = 0; i < m.length(); i++)
 	{
 	        bitset<8> mBits(m[i]);
 		bitset<8> kBits(k.substr(i*8, i*8+8));       
-		cout << "mBits = " << mBits.to_ulong() << " for char " << m[i] << endl;
-		cout << "kBits = " << kBits << endl;
+		//cout << "mBits = " << mBits.to_ulong() << " for char " << m[i] << endl;
+		//cout << "kBits = " << kBits << endl;
 		stringBinary += (mBits ^ kBits).to_string();
 	}
 	return stringBinary;	
 }
 
-string d(const string c, const string k)
+const string d(const string c, const string k)
 {
 	string stringText;
-        for (int i = 0; i < c.length(); i += 8)
+        for (int i = 0; i < min(c.length(), k.length()); i += 8)
         {
 		bitset<8> cBits(c.substr(i, i+8));      
 		bitset<8> kBits(k.substr(i, i+8));
-		cout << "cBits = " << cBits << " kBits = " << kBits << " XOR = " << (cBits ^ kBits).to_ulong() << endl;
+		//cout << "cBits = " << cBits << " kBits = " << kBits << " XOR = " << (cBits ^ kBits).to_ulong() << endl;
 
 		char ch = static_cast<char>((cBits ^ kBits).to_ulong());
                 stringText += ch;
