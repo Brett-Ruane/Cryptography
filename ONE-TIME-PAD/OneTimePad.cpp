@@ -25,7 +25,7 @@ int main(void)
 
 	const string cipherText = encrypt(message, finalKey);
 
-	//cout << "cipherText = " << cipherText << endl;
+	cout << "cipherText = " << cipherText << endl;
 
 	const string originalMessage = decrypt(cipherText, finalKey);
 
@@ -33,6 +33,8 @@ int main(void)
 	
 	//TWO-TIME-PAD-ATTACK
 	const string cipherText2 = encrypt(message2, finalKey);
+
+	cout << "cipherText2 = " << cipherText2 << endl;
 
 	const string ciphersXORedTogether = encrypt(cipherText, cipherText2);
 
